@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, CreditCard } from 'lucide-react';
 
 const AuthForm = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +20,7 @@ const AuthForm = ({ onSuccess }) => {
 
   const [registerForm, setRegisterForm] = useState({
     name: '',
+    dni: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -37,6 +38,12 @@ const AuthForm = ({ onSuccess }) => {
     const hasMinLength = password.length >= 8;
     
     return hasUpperCase && hasLowerCase && hasNumbers && hasMinLength;
+  };
+
+  const validateDNI = (dni) => {
+    // Validar que el DNI tenga 8 dígitos
+    const dniRegex = /^\d{8}$/;
+    return dniRegex.test(dni);
   };
 
   const handleLogin = async (e) => {
@@ -82,6 +89,16 @@ const AuthForm = ({ onSuccess }) => {
       return;
     }
 
+    if (!validateDNI(registerForm.dni)) {
+      toast({
+        title: "Error de validación",
+        description: "El DNI debe tener exactamente 8 dígitos",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
+
     if (!validatePassword(registerForm.password)) {
       toast({
         title: "Error de validación",
@@ -117,6 +134,7 @@ const AuthForm = ({ onSuccess }) => {
       const mockUser = {
         id: Date.now(),
         name: registerForm.name,
+        dni: registerForm.dni,
         email: registerForm.email,
         hasVoted: false,
         isAdmin: false
@@ -210,6 +228,26 @@ const AuthForm = ({ onSuccess }) => {
               required
               className="pl-4"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dni" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              DNI
+            </Label>
+            <Input
+              id="dni"
+              type="text"
+              placeholder="12345678"
+              value={registerForm.dni}
+              onChange={(e) => setRegisterForm({...registerForm, dni: e.target.value})}
+              required
+              maxLength={8}
+              className="pl-4"
+            />
+            <p className="text-xs text-gray-500">
+              Ingresa tu DNI de 8 dígitos
+            </p>
           </div>
 
           <div className="space-y-2">
