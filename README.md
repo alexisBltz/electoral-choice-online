@@ -1,4 +1,4 @@
-# Sistema Electoral Digital - ONPE
+# Sistema Electoral Digital - UWU
 
 Sistema Electoral Digital escalable desarrollado para la Oficina Nacional de Procesos Electorales del Perú.
 
