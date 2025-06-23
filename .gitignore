@@ -1,3 +1,94 @@
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Production builds
+/dist
+/build
+dist-ssr
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+# Comment in the public line in if your project uses Gatsby and not Next.js
+# https://nextjs.org/blog/next-9-1#public-directory-support
+# public
+
+# Vite build output
+dist/
+dist-ssr/
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
 # Logs
 logs
 *.log
@@ -7,14 +98,42 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea
 .DS_Store
 *.suo
@@ -22,3 +141,68 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS generated files
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+
+# Temporary folders
+tmp/
+temp/
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+
+# Local development files
+.local
+*.local
+
+# Database files (if any local databases are used)
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated files
+generated/
+auto-generated/
+
+# API keys and secrets (double-check these are not committed)
+.secrets
+secrets.json
+config/secrets.json
+
+# Deployment and CI/CD
+.github/workflows/secrets.yml
+deploy-keys/
+
+# Application specific
+# Electoral system specific files
+election-data/
+votes-backup/
+candidate-photos/upload/
+reports/generated/
+audit-logs/
+backup/
+
+# Certificate files (if any)
+*.pem
+*.key
+*.crt
+*.p12
+
+# Performance monitoring
+.trace
+.profile
