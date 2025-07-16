@@ -1,27 +1,28 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from "react-router-dom"; // <--- IMPORTANTE
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Mail, Lock, User, CreditCard } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { authService } from '@/services/authService';
 
 const AuthForm = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("login"); // <--- ESTADO PARA EL TAB
   const { toast } = useToast();
+  const navigate = useNavigate(); // <--- HOOK DE NAVIGATE
 
   const [loginForm, setLoginForm] = useState({
-    email: '',
+    username: '',
     password: ''
   });
 
   const [registerForm, setRegisterForm] = useState({
-    name: '',
-    dni: '',
-    email: '',
+    fullName: '',
+    username: '',
     password: '',
     confirmPassword: ''
   });
@@ -36,21 +37,14 @@ const AuthForm = ({ onSuccess }) => {
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
     const hasMinLength = password.length >= 8;
-    
     return hasUpperCase && hasLowerCase && hasNumbers && hasMinLength;
-  };
-
-  const validateDNI = (dni) => {
-    // Validar que el DNI tenga 8 dígitos
-    const dniRegex = /^\d{8}$/;
-    return dniRegex.test(dni);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!validateEmail(loginForm.email)) {
+    if (!validateEmail(loginForm.username)) {
       toast({
         title: "Error de validación",
         description: "Por favor ingresa un email válido",
@@ -60,26 +54,44 @@ const AuthForm = ({ onSuccess }) => {
       return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: 1,
-        name: "Usuario Demo",
-        email: loginForm.email,
-        hasVoted: false,
-        isAdmin: loginForm.email.includes('admin')
-      };
-      
-      onSuccess(mockUser);
+    try {
+      const response = await authService.login({
+        username: loginForm.username,
+        password: loginForm.password
+      });
+
+      if (response.success) {
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: response.message,
+        });
+        // Puedes redirigir aquí, por ejemplo al dashboard:
+        navigate("/dashboard"); // Cambia la ruta según tu app
+        // O puedes seguir usando onSuccess si lo necesitas
+        if (onSuccess) onSuccess(response.data.user);
+      } else {
+        toast({
+          title: "Error de autenticación",
+          description: response.message || "Credenciales inválidas",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error de conexión",
+        description: "No se pudo conectar con el servidor",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!validateEmail(registerForm.email)) {
+    if (!validateEmail(registerForm.username)) {
       toast({
         title: "Error de validación",
         description: "Por favor ingresa un email válido",
@@ -88,17 +100,6 @@ const AuthForm = ({ onSuccess }) => {
       setIsLoading(false);
       return;
     }
-
-    if (!validateDNI(registerForm.dni)) {
-      toast({
-        title: "Error de validación",
-        description: "El DNI debe tener exactamente 8 dígitos",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
-    }
-
     if (!validatePassword(registerForm.password)) {
       toast({
         title: "Error de validación",
@@ -108,7 +109,6 @@ const AuthForm = ({ onSuccess }) => {
       setIsLoading(false);
       return;
     }
-
     if (registerForm.password !== registerForm.confirmPassword) {
       toast({
         title: "Error de validación",
@@ -118,8 +118,7 @@ const AuthForm = ({ onSuccess }) => {
       setIsLoading(false);
       return;
     }
-
-    if (registerForm.name.length < 2 || registerForm.name.length > 100) {
+    if (registerForm.fullName.length < 2 || registerForm.fullName.length > 100) {
       toast({
         title: "Error de validación",
         description: "El nombre debe tener entre 2 y 100 caracteres",
@@ -129,29 +128,48 @@ const AuthForm = ({ onSuccess }) => {
       return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: Date.now(),
-        name: registerForm.name,
-        dni: registerForm.dni,
-        email: registerForm.email,
-        hasVoted: false,
-        isAdmin: false
-      };
-      
-      toast({
-        title: "Registro exitoso",
-        description: "Tu cuenta ha sido creada correctamente",
+    try {
+      const response = await authService.register({
+        fullName: registerForm.fullName,
+        username: registerForm.username,
+        password: registerForm.password
       });
-      
-      onSuccess(mockUser);
+
+      if (response.success) {
+        toast({
+          title: "Registro exitoso",
+          description: response.message,
+        });
+
+        setRegisterForm({
+          fullName: '',
+          username: '',
+          password: '',
+          confirmPassword: ''
+        });
+
+        // Cambia a la pestaña de login
+        setActiveTab("login");
+      } else {
+        toast({
+          title: "Error en el registro",
+          description: response.message || "No se pudo crear la cuenta",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error de conexión",
+        description: "No se pudo conectar con el servidor",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (
-    <Tabs defaultValue="login" className="w-full">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-6">
         <TabsTrigger value="login" className="text-sm">Iniciar Sesión</TabsTrigger>
         <TabsTrigger value="register" className="text-sm">Registrarse</TabsTrigger>
@@ -159,22 +177,22 @@ const AuthForm = ({ onSuccess }) => {
 
       <TabsContent value="login">
         <form onSubmit={handleLogin} className="space-y-4">
+          {/* ...campos login igual que antes... */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
+            <Label htmlFor="username" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
               Email
             </Label>
             <Input
-              id="email"
+              id="username"
               type="email"
-              placeholder="tu@email.com"
-              value={loginForm.email}
-              onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+              placeholder="joel.chino@example.com"
+              value={loginForm.username}
+              onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
               required
               className="pl-4"
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="password" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
@@ -201,7 +219,6 @@ const AuthForm = ({ onSuccess }) => {
               </Button>
             </div>
           </div>
-
           <Button 
             type="submit" 
             className="w-full bg-blue-600 hover:bg-blue-700"
@@ -214,58 +231,37 @@ const AuthForm = ({ onSuccess }) => {
 
       <TabsContent value="register">
         <form onSubmit={handleRegister} className="space-y-4">
+          {/* ...campos registro igual que antes... */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="flex items-center gap-2">
+            <Label htmlFor="fullName" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Nombre Completo
             </Label>
             <Input
-              id="name"
+              id="fullName"
               type="text"
-              placeholder="Juan Pérez"
-              value={registerForm.name}
-              onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
+              placeholder="Joel Chino"
+              value={registerForm.fullName}
+              onChange={(e) => setRegisterForm({...registerForm, fullName: e.target.value})}
               required
               className="pl-4"
             />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="dni" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              DNI
-            </Label>
-            <Input
-              id="dni"
-              type="text"
-              placeholder="12345678"
-              value={registerForm.dni}
-              onChange={(e) => setRegisterForm({...registerForm, dni: e.target.value})}
-              required
-              maxLength={8}
-              className="pl-4"
-            />
-            <p className="text-xs text-gray-500">
-              Ingresa tu DNI de 8 dígitos
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="register-email" className="flex items-center gap-2">
+            <Label htmlFor="register-username" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
               Email
             </Label>
             <Input
-              id="register-email"
+              id="register-username"
               type="email"
-              placeholder="tu@email.com"
-              value={registerForm.email}
-              onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
+              placeholder="joel.chino@example.com"
+              value={registerForm.username}
+              onChange={(e) => setRegisterForm({...registerForm, username: e.target.value})}
               required
               className="pl-4"
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="register-password" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
@@ -295,7 +291,6 @@ const AuthForm = ({ onSuccess }) => {
               Mínimo 8 caracteres, una mayúscula, una minúscula y un número
             </p>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
             <Input
@@ -308,7 +303,6 @@ const AuthForm = ({ onSuccess }) => {
               className="pl-4"
             />
           </div>
-
           <Button 
             type="submit" 
             className="w-full bg-green-600 hover:bg-green-700"
