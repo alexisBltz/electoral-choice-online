@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Esquemas de validación de configuración
 const EnvConfigSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  VITE_API_BASE_URL: z.string().url().default('http://localhost:3000'),
+  VITE_API_BASE_URL: z.string().url().default('http://localhost:8080'),
   VITE_APP_NAME: z.string().default('Sistema Electoral Digital'),
   VITE_ORG_NAME: z.string().default('ONPE'),
   VITE_APP_VERSION: z.string().default('1.0.0'),

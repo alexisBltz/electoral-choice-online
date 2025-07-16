@@ -5,7 +5,7 @@ import { ApiResponse, CandidateVotesDTO, OverallResultsDTO } from '../types/repo
 /**
  * Configuración base para el servicio de reportes
  */
-const REPORTS_API_BASE_URL = process.env.REACT_APP_REPORTS_API_URL || 'http://localhost:8084';
+const REPORTS_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const API_TIMEOUT = 10000; // 10 segundos
 
 /**
