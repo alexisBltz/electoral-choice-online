@@ -1,220 +1,323 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+// src/pages/reports/ReportsOverviewPage.tsx
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { useReports } from '../../hooks/useReports';
+import { CandidateVotesReport } from '../../components/reports/CandidateVotesReport';
+import { OverallResultsReport } from '../../components/reports/OverallResultsReport';
 import { 
+  RefreshCw, 
+  Download, 
   FileText, 
   BarChart3, 
-  PieChart, 
-  TrendingUp, 
-  Download,
-  Calendar,
-  Users,
-  FileBarChart
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 
-const ReportsOverviewPage: React.FC = () => {
-  const navigate = useNavigate();
+/**
+ * Página principal de reportes que muestra una vista general de todos los reportes disponibles
+ */
+export const ReportsOverviewPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  // Hook personalizado para manejar los reportes
+  const {
+    candidateVotes,
+    overallResults,
+    isLoading,
+    isRefreshing,
+    isError,
+    error,
+    hasData,
+    lastUpdated,
+    loadAllReports,
+    refreshReports,
+    clearError,
+  } = useReports({
+    autoLoad: true,
+    refreshInterval: 30000, // Refrescar cada 30 segundos
+    debug: process.env.NODE_ENV === 'development',
+  });
 
-  const reportCategories = [
-    {
-      id: 'election-reports',
-      title: 'Reportes Electorales',
-      description: 'Informes detallados sobre procesos electorales',
-      icon: FileBarChart,
-      color: 'bg-blue-500',
-      reports: [
-        { name: 'Reporte de Resultados Finales', status: 'disponible' },
-        { name: 'Análisis de Participación', status: 'generando' },
-        { name: 'Estadísticas por Distrito', status: 'disponible' }
-      ]
-    },
-    {
-      id: 'candidate-reports',
-      title: 'Reportes de Candidatos',
-      description: 'Análisis y estadísticas de candidatos',
-      icon: Users,
-      color: 'bg-green-500',
-      reports: [
-        { name: 'Perfil de Candidatos', status: 'disponible' },
-        { name: 'Análisis de Propuestas', status: 'disponible' },
-        { name: 'Estadísticas de Votación', status: 'pendiente' }
-      ]
-    },
-    {
-      id: 'analytics-reports',
-      title: 'Reportes Analíticos',
-      description: 'Análisis avanzados y tendencias',
-      icon: TrendingUp,
-      color: 'bg-purple-500',
-      reports: [
-        { name: 'Tendencias de Votación', status: 'disponible' },
-        { name: 'Análisis Demográfico', status: 'disponible' },
-        { name: 'Predicciones y Proyecciones', status: 'generando' }
-      ]
-    },
-    {
-      id: 'system-reports',
-      title: 'Reportes del Sistema',
-      description: 'Informes técnicos y de rendimiento',
-      icon: BarChart3,
-      color: 'bg-orange-500',
-      reports: [
-        { name: 'Log de Actividades', status: 'disponible' },
-        { name: 'Rendimiento del Sistema', status: 'disponible' },
-        { name: 'Auditoría de Seguridad', status: 'programado' }
-      ]
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'disponible': return 'bg-green-100 text-green-800';
-      case 'generando': return 'bg-yellow-100 text-yellow-800';
-      case 'pendiente': return 'bg-gray-100 text-gray-800';
-      case 'programado': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  /**
+   * Maneja la acción de refrescar reportes
+   */
+  const handleRefresh = async () => {
+    try {
+      await refreshReports();
+    } catch (error) {
+      console.error('Error al refrescar reportes:', error);
     }
   };
 
+  /**
+   * Maneja la descarga de reportes (placeholder)
+   */
+  const handleDownload = () => {
+    // TODO: Implementar descarga de reportes en formato PDF/Excel
+    alert('Funcionalidad de descarga en desarrollo');
+  };
+
+  /**
+   * Obtiene el estado de la conexión con el servicio
+   */
+  const getConnectionStatus = () => {
+    if (isError) {
+      return {
+        icon: AlertCircle,
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
+        label: 'Error de Conexión',
+        description: 'No se puede conectar con el servicio de reportes'
+      };
+    }
+    
+    if (isLoading || isRefreshing) {
+      return {
+        icon: Clock,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        label: 'Actualizando',
+        description: 'Obteniendo los datos más recientes'
+      };
+    }
+    
+    return {
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      label: 'Conectado',
+      description: 'Datos actualizados correctamente'
+    };
+  };
+
+  const connectionStatus = getConnectionStatus();
+  const StatusIcon = connectionStatus.icon;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Centro de Reportes
-              </h1>
-              <p className="text-gray-600">
-                Genera, visualiza y descarga reportes del sistema electoral
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={() => navigate('/reports/generator')}>
-                <FileText className="w-4 h-4 mr-2" />
-                Generar Reporte
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/reports/scheduled')}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Reportes Programados
-              </Button>
-            </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Reportes de Votación</h1>
+          <p className="text-gray-600">
+            Análisis y resultados del proceso electoral en tiempo real
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* Estado de conexión */}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${connectionStatus.bgColor}`}>
+            <StatusIcon className={`h-4 w-4 ${connectionStatus.color}`} />
+            <span className={`text-sm font-medium ${connectionStatus.color}`}>
+              {connectionStatus.label}
+            </span>
           </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Reportes</p>
-                  <p className="text-2xl font-bold text-gray-900">245</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Download className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Descargas Hoy</p>
-                  <p className="text-2xl font-bold text-gray-900">87</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <PieChart className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">En Proceso</p>
-                  <p className="text-2xl font-bold text-gray-900">12</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Programados</p>
-                  <p className="text-2xl font-bold text-gray-900">8</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Report Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {reportCategories.map((category) => {
-            const IconComponent = category.icon;
-            return (
-              <Card 
-                key={category.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/reports/${category.id}`)}
-              >
-                <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${category.color} bg-opacity-10`}>
-                      <IconComponent className={`h-6 w-6 ${category.color.replace('bg-', 'text-')}`} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{category.title}</CardTitle>
-                      <CardDescription>{category.description}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {category.reports.map((report, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700">
-                          {report.name}
-                        </span>
-                        <Badge 
-                          variant="secondary"
-                          className={getStatusColor(report.status)}
-                        >
-                          {report.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 pt-4 border-t">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/reports/${category.id}`);
-                      }}
-                    >
-                      Ver Todos los Reportes
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          
+          {/* Botones de acción */}
+          <Button
+            onClick={handleRefresh}
+            disabled={isLoading || isRefreshing}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          
+          <Button
+            onClick={handleDownload}
+            disabled={!hasData}
+            size="sm"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Descargar
+          </Button>
         </div>
       </div>
+
+      {/* Información de última actualización */}
+      {lastUpdated && (
+        <div className="text-sm text-gray-500">
+          Última actualización: {lastUpdated.toLocaleString()}
+        </div>
+      )}
+
+      {/* Alert de error */}
+      {isError && error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              onClick={clearError}
+              variant="outline"
+              size="sm"
+            >
+              Reintentar
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Estadísticas rápidas */}
+      {hasData && overallResults && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Votos</p>
+                  <p className="text-2xl font-bold">{overallResults.totalVotes.toLocaleString()}</p>
+                </div>
+                <BarChart3 className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Participación</p>
+                  <p className="text-2xl font-bold">{overallResults.participationPercentage.toFixed(1)}%</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Candidatos</p>
+                  <p className="text-2xl font-bold">{candidateVotes.length}</p>
+                </div>
+                <FileText className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Estado</p>
+                  <Badge variant="outline" className="mt-1">
+                    {overallResults.votingStatus}
+                  </Badge>
+                </div>
+                <CheckCircle className="h-8 w-8 text-yellow-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Contenido principal con tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Resumen General</TabsTrigger>
+          <TabsTrigger value="candidates">Votos por Candidato</TabsTrigger>
+          <TabsTrigger value="analytics">Análisis Detallado</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <OverallResultsReport
+            overallResults={overallResults}
+            isLoading={isLoading}
+            error={error}
+          />
+        </TabsContent>
+
+        <TabsContent value="candidates" className="space-y-6">
+          <CandidateVotesReport
+            candidateVotes={candidateVotes}
+            isLoading={isLoading}
+            error={error}
+            viewMode="both"
+          />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Análisis Avanzado</CardTitle>
+              <CardDescription>
+                Métricas detalladas y tendencias de votación
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Análisis de participación */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Análisis de Participación</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {overallResults ? (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span>Usuarios que votaron:</span>
+                          <span className="font-bold">{overallResults.totalVotes.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Usuarios registrados:</span>
+                          <span className="font-bold">{overallResults.totalUsers.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Usuarios sin votar:</span>
+                          <span className="font-bold">
+                            {(overallResults.totalUsers - overallResults.totalVotes).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No hay datos disponibles</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Distribución de votos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Distribución de Votos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {candidateVotes.length > 0 ? (
+                      <div className="space-y-3">
+                        {candidateVotes
+                          .sort((a, b) => b.voteCount - a.voteCount)
+                          .slice(0, 3)
+                          .map((candidate, index) => (
+                            <div key={candidate.candidateName} className="flex justify-between items-center">
+                              <span className="flex items-center gap-2">
+                                <Badge variant={index === 0 ? 'default' : 'secondary'}>
+                                  #{index + 1}
+                                </Badge>
+                                {candidate.candidateName}
+                              </span>
+                              <span className="font-bold">{candidate.percentage.toFixed(1)}%</span>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No hay datos disponibles</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

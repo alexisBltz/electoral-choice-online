@@ -68,3 +68,5 @@ export interface ElectionConfig {
   title: string;
   description: string;
 }
+
+export * from './reports';
