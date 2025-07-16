@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCandidates } from '@/hooks/useCandidates';
 import { useNavigate } from 'react-router-dom';
-import { Users, Search, Filter, Plus } from 'lucide-react';
+import { Users, Search, Filter, Plus, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -31,7 +31,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Sofía Transparente",
     party: "Movimiento Claro",
-    position: "Síndica",
+    position: "Alcalde",
     color: "#4AD991",
     description: "Promueve la transparencia: ¡hasta sus reuniones son en vivo!",
     avatar: "https://randomuser.me/api/portraits/women/50.jpg",
@@ -40,7 +40,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Carlos Felicidad",
     party: "Partido Sonrisa",
-    position: "Regidor",
+    position: "Alcalde",
     color: "#FF69B4",
     description: "Ofrece más días libres y menos lunes.",
     avatar: "https://randomuser.me/api/portraits/men/60.jpg",
@@ -49,7 +49,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Martina Verde",
     party: "EcoVerde",
-    position: "Diputada",
+    position: "Alcalde",
     color: "#228B22",
     description: "Quiere más árboles que postes de luz.",
     avatar: "https://randomuser.me/api/portraits/women/47.jpg",
@@ -67,7 +67,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Patricia Fiesta",
     party: "Movimiento Alegre",
-    position: "Regidora",
+    position: "Alcalde",
     color: "#FFA500",
     description: "Más festivales, menos impuestos.",
     avatar: "https://randomuser.me/api/portraits/women/60.jpg",
@@ -76,7 +76,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Tomás Tiempo",
     party: "Partido Puntual",
-    position: "Diputado",
+    position: "Alcalde",
     color: "#808080",
     description: "Todo a tiempo. ¡Ni un minuto tarde!",
     avatar: "https://randomuser.me/api/portraits/men/65.jpg",
@@ -85,7 +85,7 @@ const MOCK_CANDIDATES = [
   {
     name: "Luna Creativa",
     party: "Innovadores Unidos",
-    position: "Alcaldesa",
+    position: "Alcalde",
     color: "#800080",
     description: "Ideas fuera de este mundo (literal).",
     avatar: "https://randomuser.me/api/portraits/women/65.jpg",
@@ -155,17 +155,28 @@ const CandidateListPage: React.FC = () => {
   return (
     <div className="container mx-auto py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lista de Candidatos</h1>
-          <p className="text-muted-foreground">
-            Gestiona y visualiza todos los candidatos registrados
-          </p>
-        </div>
-        <Button onClick={() => navigate('/candidates/register')} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Registrar Candidato
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
         </Button>
+        <div className="flex-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Lista de Candidatos</h1>
+            <p className="text-muted-foreground">
+              Gestiona y visualiza todos los candidatos registrados
+            </p>
+          </div>
+          <Button onClick={() => navigate('/candidates/register')} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Registrar Candidato
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

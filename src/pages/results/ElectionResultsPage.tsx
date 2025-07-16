@@ -20,8 +20,113 @@ import {
   Share2,
   Eye,
   Calendar,
-  Activity
+  Activity,
+  ArrowLeft
 } from 'lucide-react';
+
+// MOCK_CANDIDATES fallback
+const MOCK_CANDIDATES = [
+  {
+    id: "mock1",
+    name: "Ladrón Pérez",
+    party: "Partido Corrupto",
+    color: "#000000",
+    position: "Alcalde",
+    slogan: "¡Donde hay dinero, hay progreso (para mí)!",
+    description: "Si votas por mí, te devuelvo el 10%... en promesas.",
+    avatar: "https://randomuser.me/api/portraits/men/30.jpg"
+  },
+  {
+    id: "mock2",
+    name: "Polencio Laborioso",
+    party: "Partido Bzz",
+    color: "#FFD700",
+    position: "Alcalde",
+    slogan: "Trabajando como abeja para ti.",
+    description: "Trabajador incansable, como una abeja, pero con menos picaduras.",
+    avatar: "https://randomuser.me/api/portraits/men/16.jpg"
+  },
+  {
+    id: "mock3",
+    name: "Paco el Pato",
+    party: "Partido Cuack",
+    color: "#00BFFF",
+    position: "Alcalde",
+    slogan: "¡Más pan y lagos para todos!",
+    description: "Nadó contra la corriente para llegar al poder.",
+    avatar: "https://randomuser.me/api/portraits/men/25.jpg"
+  },
+  {
+    id: "mock4",
+    name: "Sofía Transparente",
+    party: "Movimiento Claro",
+    color: "#4AD991",
+    position: "Alcalde",
+    slogan: "Nada que esconder, todo por mostrar.",
+    description: "Promueve la transparencia: ¡hasta sus reuniones son en vivo!",
+    avatar: "https://randomuser.me/api/portraits/women/50.jpg"
+  },
+  {
+    id: "mock5",
+    name: "Carlos Felicidad",
+    party: "Partido Sonrisa",
+    color: "#FF69B4",
+    position: "Alcalde",
+    slogan: "Una sonrisa para cada problema.",
+    description: "Ofrece más días libres y menos lunes.",
+    avatar: "https://randomuser.me/api/portraits/men/60.jpg"
+  },
+  {
+    id: "mock6",
+    name: "Martina Verde",
+    party: "EcoVerde",
+    color: "#228B22",
+    position: "Alcalde",
+    slogan: "Verde que te quiero verde.",
+    description: "Quiere más árboles que postes de luz.",
+    avatar: "https://randomuser.me/api/portraits/women/47.jpg"
+  },
+  {
+    id: "mock7",
+    name: "Roberto Cibernético",
+    party: "Partido Digital",
+    color: "#1E90FF",
+    position: "Alcalde",
+    slogan: "Modernidad y WiFi para todos.",
+    description: "Propone WiFi gratis ¡hasta en las plazas!",
+    avatar: "https://randomuser.me/api/portraits/men/55.jpg"
+  },
+  {
+    id: "mock8",
+    name: "Patricia Fiesta",
+    party: "Movimiento Alegre",
+    color: "#FFA500",
+    position: "Alcalde",
+    slogan: "¡Menos impuestos, más fiestas!",
+    description: "Más festivales, menos impuestos.",
+    avatar: "https://randomuser.me/api/portraits/women/60.jpg"
+  },
+  {
+    id: "mock9",
+    name: "Tomás Tiempo",
+    party: "Partido Puntual",
+    color: "#808080",
+    position: "Alcalde",
+    slogan: "¡Todo a su hora!",
+    description: "Todo a tiempo. ¡Ni un minuto tarde!",
+    avatar: "https://randomuser.me/api/portraits/men/65.jpg"
+  },
+  {
+    id: "mock10",
+    name: "Luna Creativa",
+    party: "Innovadores Unidos",
+    color: "#800080",
+    position: "Alcalde",
+    slogan: "Pensando fuera de la Tierra.",
+    description: "Ideas fuera de este mundo (literal).",
+    avatar: "https://randomuser.me/api/portraits/women/65.jpg"
+  }
+];
 
 const ElectionResultsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,65 +135,77 @@ const ElectionResultsPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = React.useState(new Date());
   const [autoRefresh, setAutoRefresh] = React.useState(true);
 
+  // Usa datos mock si no hay candidatos reales
+  const allCandidates = candidates.length > 0 ? candidates : MOCK_CANDIDATES;
+
   // Mock results data
-  const resultsData = {
+  const resultsData = React.useMemo(() => ({
     totalVotes: 1847520,
     totalRegistered: 4250000,
     participationRate: 43.5,
     lastUpdate: new Date(),
     status: 'preliminary' as const,
-    results: candidates.map((candidate, index) => ({
+    results: allCandidates.map((candidate, index) => ({
       ...candidate,
       votes: Math.floor(Math.random() * 500000) + 100000,
       percentage: Math.floor(Math.random() * 25) + 10,
       trend: Math.random() > 0.5 ? 'up' : 'down',
       trendValue: Math.floor(Math.random() * 5) + 1,
     })).sort((a, b) => b.votes - a.votes),
-  };
+  }), [allCandidates, lastUpdate]);
 
   // Auto-refresh every 30 seconds
   React.useEffect(() => {
     if (!autoRefresh) return;
-    
     const interval = setInterval(() => {
       setLastUpdate(new Date());
     }, 30000);
-
     return () => clearInterval(interval);
   }, [autoRefresh]);
 
-  const winner = resultsData.results[0];
+  const winner = resultsData.results[0] || MOCK_CANDIDATES[0]; // fallback
   const totalValidVotes = resultsData.results.reduce((sum, r) => sum + r.votes, 0);
 
   return (
     <div className="container mx-auto py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resultados Electorales</h1>
-          <p className="text-muted-foreground">
-            Elecciones Presidenciales 2024 - Resultados en tiempo real
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-            {autoRefresh ? 'Auto-actualización activa' : 'Actualizar manualmente'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/results/analytics')}
-            className="flex items-center gap-2"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Analytics Detallado
-          </Button>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
+        <div className="flex-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Resultados Electorales</h1>
+            <p className="text-muted-foreground">
+              Elecciones Presidenciales 2024 - Resultados en tiempo real
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+              {autoRefresh ? 'Auto-actualización activa' : 'Actualizar manualmente'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/results/analytics')}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Analytics Detallado
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -151,7 +268,7 @@ const ElectionResultsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Candidatos</p>
-                <p className="text-3xl font-bold">{candidates.length}</p>
+                <p className="text-3xl font-bold">{allCandidates.length}</p>
               </div>
               <Award className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -280,7 +397,7 @@ const ElectionResultsPage: React.FC = () => {
                       </div>
                       <Progress value={candidate.percentage} className="h-3" />
                     </div>
-                    {index === 0 && (
+                    {index === 0 && resultsData.results[1] && (
                       <div className="flex items-center gap-2 text-sm text-green-700">
                         <Award className="h-4 w-4" />
                         <span>Ventaja: {candidate.percentage - resultsData.results[1].percentage}% sobre el segundo lugar</span>
