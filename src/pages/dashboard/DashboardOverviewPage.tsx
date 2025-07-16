@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Vote, BarChart3, Users, Settings, CheckCircle, TrendingUp, Clock } from 'lucide-react';
+import { Vote, BarChart3, Users, Settings, CheckCircle, TrendingUp, Clock, LogOut } from 'lucide-react';
 import { useAuth, useCandidates } from '@/hooks';
 import { useVotingStore, useElectionStore } from '@/store';
 import { FormatUtil } from '@/utils';
@@ -11,6 +11,16 @@ const DashboardOverviewPage = () => {
   const { candidates } = useCandidates();
   const { hasVoted } = useVotingStore();
   const { stats } = useElectionStore();
+
+  const handleLogout = () => {
+    // Limpiar localStorage
+    localStorage.removeItem('electoral_token');
+    localStorage.removeItem('electoral_user');
+    localStorage.removeItem('tokenTimestamp');
+    
+    // Refresh de la página para activar la redirección
+    window.location.reload();
+  };
 
   const quickActions = [
     {
@@ -59,7 +69,7 @@ const DashboardOverviewPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-8 py-2">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
         <div className="flex items-center justify-between">
@@ -231,6 +241,30 @@ const DashboardOverviewPage = () => {
                 <p className="text-sm text-gray-700">Acceso al sistema electoral digital</p>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Logout Section */}
+      <Card className="border-cyan-200 bg-gradient-to-r from-cyan-50 to-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-cyan-100 p-3 rounded-full animate-pulse">
+                <LogOut className="h-6 w-6 text-cyan-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-cyan-900">Finalizar Sesión</h3>
+                <p className="text-sm text-cyan-700">Cerrar sesión de forma segura</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleLogout}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar Sesión
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -63,6 +63,7 @@ export class AuthService extends BaseApiService {
 
       console.log('Token guardado:', localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN));
       console.log('User guardado:', localStorage.getItem(LOCAL_STORAGE_KEYS.USER));
+      localStorage.setItem('tokenTimestamp', Date.now().toString());
       
       return {
         success: true,
