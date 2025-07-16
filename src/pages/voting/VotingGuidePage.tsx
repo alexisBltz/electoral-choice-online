@@ -19,7 +19,9 @@ import {
   FileText,
   Smartphone,
   Globe,
-  Lock
+  Lock,
+  Calendar,
+  BarChart3
 } from 'lucide-react';
 
 const VotingGuidePage: React.FC = () => {

@@ -15,41 +15,46 @@ import {
   AlertCircle,
   Calendar,
   MapPin,
-  Info
+  Info,
+  ArrowLeft,
+  LayoutDashboard
 } from 'lucide-react';
 
 const VotingPortalPage: React.FC = () => {
   const navigate = useNavigate();
   const { hasVoted, selectedCandidateId } = useVotingStore();
+  // Puedes seguir usando tu store si la ocupas para otras cosas,
+  // pero la lógica de si está activa la elección se calcula por fecha aquí.
   const { 
-    isElectionActive, 
+    // isElectionActive, // No lo usaremos
     electionInfo, 
     totalVotes, 
     participationRate 
   } = useElectionStore();
 
-  // Mock election data
+  // Nueva fecha y datos simulados para 2025
   const electionData = {
-    title: 'Elecciones Presidenciales 2024',
+    title: 'Elecciones Generales 2025',
     description: 'Proceso electoral nacional para elegir presidente y vicepresidente',
-    startDate: '2024-03-15T08:00:00',
-    endDate: '2024-03-15T18:00:00',
+    startDate: '2025-07-16T08:00:00',
+    endDate: '2025-07-16T23:59:59',
     location: 'Nacional',
-    totalRegistered: 4250000,
-    currentParticipation: 1847520,
+    totalRegistered: 4321000,
+    currentParticipation: 2998765,
     status: 'active' as const,
   };
 
+  // Calcula si la votación está activa en base a las fechas
+  const now = new Date();
+  const start = new Date(electionData.startDate);
+  const end = new Date(electionData.endDate);
+  const isActive = now >= start && now <= end;
+
   const getTimeRemaining = () => {
-    const end = new Date(electionData.endDate);
-    const now = new Date();
     const diff = end.getTime() - now.getTime();
-    
     if (diff <= 0) return 'Votación cerrada';
-    
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
     return `${hours}h ${minutes}m restantes`;
   };
 
@@ -60,19 +65,30 @@ const VotingPortalPage: React.FC = () => {
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-4xl">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Portal de Votación</h1>
-        <p className="text-xl text-muted-foreground">
-          {electionData.title}
-        </p>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
+        <div className="flex-1 text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Portal de Votación</h1>
+          <p className="text-xl text-muted-foreground">
+            {electionData.title}
+          </p>
+        </div>
       </div>
 
       {/* Election Status */}
-      <Card className={`border-2 ${isElectionActive ? 'border-green-500' : 'border-red-500'}`}>
+      <Card className={`border-2 ${isActive ? 'border-green-500' : 'border-red-500'}`}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              {isElectionActive ? (
+              {isActive ? (
                 <>
                   <CheckCircle className="h-6 w-6 text-green-500" />
                   Votación Activa
@@ -85,7 +101,7 @@ const VotingPortalPage: React.FC = () => {
               )}
             </CardTitle>
             <Badge 
-              variant={isElectionActive ? "default" : "destructive"}
+              variant={isActive ? "default" : "destructive"}
               className="text-sm"
             >
               {getTimeRemaining()}
@@ -101,14 +117,14 @@ const VotingPortalPage: React.FC = () => {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Fecha</p>
-                <p className="text-sm text-muted-foreground">15 de Marzo, 2024</p>
+                <p className="text-sm text-muted-foreground">16 de Julio, 2025</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Horario</p>
-                <p className="text-sm text-muted-foreground">8:00 AM - 6:00 PM</p>
+                <p className="text-sm text-muted-foreground">8:00 AM - 11:59 PM</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -132,13 +148,13 @@ const VotingPortalPage: React.FC = () => {
             Gracias por participar en este proceso democrático. Tu voto es confidencial y ha sido contabilizado.
           </AlertDescription>
         </Alert>
-      ) : isElectionActive ? (
+      ) : isActive ? (
         <Alert className="border-blue-500 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <strong>Puedes votar ahora.</strong>
+            <strong>¡La votación está abierta! Aún puedes emitir tu voto.</strong>
             <br />
-            El proceso de votación está activo. Asegúrate de revisar todas las opciones antes de confirmar tu voto.
+            El proceso de votación está activo. Participa antes de que termine el tiempo. Revisa todas tus opciones antes de confirmar tu voto.
           </AlertDescription>
         </Alert>
       ) : (
@@ -211,7 +227,7 @@ const VotingPortalPage: React.FC = () => {
             </div>
             <Button 
               className="w-full" 
-              disabled={!isElectionActive && !hasVoted}
+              disabled={!isActive && !hasVoted}
               variant={hasVoted ? "outline" : "default"}
             >
               {hasVoted ? 'Ver Mi Voto' : 'Votar Ahora'}

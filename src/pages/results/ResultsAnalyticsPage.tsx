@@ -22,11 +22,118 @@ import {
   Eye
 } from 'lucide-react';
 
+// MOCK_CANDIDATES fallback
+const MOCK_CANDIDATES = [
+  {
+    id: "mock1",
+    name: "Ladrón Pérez",
+    party: "Partido Corrupto",
+    color: "#000000",
+    position: "Alcalde",
+    slogan: "¡Donde hay dinero, hay progreso (para mí)!",
+    description: "Si votas por mí, te devuelvo el 10%... en promesas.",
+    avatar: "https://randomuser.me/api/portraits/men/30.jpg"
+  },
+  {
+    id: "mock2",
+    name: "Polencio Laborioso",
+    party: "Partido Bzz",
+    color: "#FFD700",
+    position: "Alcalde",
+    slogan: "Trabajando como abeja para ti.",
+    description: "Trabajador incansable, como una abeja, pero con menos picaduras.",
+    avatar: "https://randomuser.me/api/portraits/men/16.jpg"
+  },
+  {
+    id: "mock3",
+    name: "Paco el Pato",
+    party: "Partido Cuack",
+    color: "#00BFFF",
+    position: "Alcalde",
+    slogan: "¡Más pan y lagos para todos!",
+    description: "Nadó contra la corriente para llegar al poder.",
+    avatar: "https://randomuser.me/api/portraits/men/25.jpg"
+  },
+  {
+    id: "mock4",
+    name: "Sofía Transparente",
+    party: "Movimiento Claro",
+    color: "#4AD991",
+    position: "Alcalde",
+    slogan: "Nada que esconder, todo por mostrar.",
+    description: "Promueve la transparencia: ¡hasta sus reuniones son en vivo!",
+    avatar: "https://randomuser.me/api/portraits/women/50.jpg"
+  },
+  {
+    id: "mock5",
+    name: "Carlos Felicidad",
+    party: "Partido Sonrisa",
+    color: "#FF69B4",
+    position: "Alcalde",
+    slogan: "Una sonrisa para cada problema.",
+    description: "Ofrece más días libres y menos lunes.",
+    avatar: "https://randomuser.me/api/portraits/men/60.jpg"
+  },
+  {
+    id: "mock6",
+    name: "Martina Verde",
+    party: "EcoVerde",
+    color: "#228B22",
+    position: "Alcalde",
+    slogan: "Verde que te quiero verde.",
+    description: "Quiere más árboles que postes de luz.",
+    avatar: "https://randomuser.me/api/portraits/women/47.jpg"
+  },
+  {
+    id: "mock7",
+    name: "Roberto Cibernético",
+    party: "Partido Digital",
+    color: "#1E90FF",
+    position: "Alcalde",
+    slogan: "Modernidad y WiFi para todos.",
+    description: "Propone WiFi gratis ¡hasta en las plazas!",
+    avatar: "https://randomuser.me/api/portraits/men/55.jpg"
+  },
+  {
+    id: "mock8",
+    name: "Patricia Fiesta",
+    party: "Movimiento Alegre",
+    color: "#FFA500",
+    position: "Alcalde",
+    slogan: "¡Menos impuestos, más fiestas!",
+    description: "Más festivales, menos impuestos.",
+    avatar: "https://randomuser.me/api/portraits/women/60.jpg"
+  },
+  {
+    id: "mock9",
+    name: "Tomás Tiempo",
+    party: "Partido Puntual",
+    color: "#808080",
+    position: "Alcalde",
+    slogan: "¡Todo a su hora!",
+    description: "Todo a tiempo. ¡Ni un minuto tarde!",
+    avatar: "https://randomuser.me/api/portraits/men/65.jpg"
+  },
+  {
+    id: "mock10",
+    name: "Luna Creativa",
+    party: "Innovadores Unidos",
+    color: "#800080",
+    position: "Alcalde",
+    slogan: "Pensando fuera de la Tierra.",
+    description: "Ideas fuera de este mundo (literal).",
+    avatar: "https://randomuser.me/api/portraits/women/65.jpg"
+  }
+];
+
 const ResultsAnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
   const { candidates } = useCandidates();
   const [selectedRegion, setSelectedRegion] = React.useState('all');
   const [selectedTimeframe, setSelectedTimeframe] = React.useState('all');
+
+  // Use mock candidates if no real candidates
+  const allCandidates = candidates.length > 0 ? candidates : MOCK_CANDIDATES;
 
   // Mock detailed analytics data
   const analyticsData = {
@@ -50,11 +157,11 @@ const ResultsAnalyticsPage: React.FC = () => {
       ],
     },
     geographic: [
-      { province: 'San José', votes: 652000, participation: 45.2, winner: candidates[0]?.name },
-      { province: 'Alajuela', votes: 485000, participation: 42.8, winner: candidates[1]?.name },
-      { province: 'Cartago', votes: 248000, participation: 44.1, winner: candidates[0]?.name },
-      { province: 'Heredia', votes: 287000, participation: 46.3, winner: candidates[0]?.name },
-      { province: 'Guanacaste', votes: 175000, participation: 41.5, winner: candidates[2]?.name },
+      { province: 'San José', votes: 652000, participation: 45.2, winner: allCandidates[0]?.name },
+      { province: 'Alajuela', votes: 485000, participation: 42.8, winner: allCandidates[1]?.name },
+      { province: 'Cartago', votes: 248000, participation: 44.1, winner: allCandidates[0]?.name },
+      { province: 'Heredia', votes: 287000, participation: 46.3, winner: allCandidates[0]?.name },
+      { province: 'Guanacaste', votes: 175000, participation: 41.5, winner: allCandidates[2]?.name },
     ],
     temporal: [
       { hour: '08:00', votes: 52000, cumulative: 52000 },
@@ -71,7 +178,8 @@ const ResultsAnalyticsPage: React.FC = () => {
     ],
   };
 
-  const candidateResults = candidates.map((candidate, index) => ({
+  // Always generate candidateResults from allCandidates
+  const candidateResults = allCandidates.map((candidate, index) => ({
     ...candidate,
     votes: Math.floor(Math.random() * 500000) + 100000,
     percentage: Math.floor(Math.random() * 25) + 10,

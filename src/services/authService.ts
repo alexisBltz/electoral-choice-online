@@ -2,10 +2,24 @@ import { BaseApiService } from './http';
 import { User, AuthCredentials, RegisterData, ApiResponse } from '@/types';
 import { config } from '@/config';
 import { LOCAL_STORAGE_KEYS } from '@/constants';
+import { Mail } from 'lucide-react';
 
 interface AuthResponse {
   user: User;
   token: string;
+}
+
+// Interfaz para el registro actualizada según tu API
+interface RegisterRequestApi {
+  fullName: string;
+  username: string;
+  password: string;
+}
+
+// Interfaz para el login actualizada según tu API
+interface LoginRequestApi {
+  username: string;
+  password: string;
 }
 
 export class AuthService extends BaseApiService {
@@ -13,43 +27,46 @@ export class AuthService extends BaseApiService {
     super(config.api.endpoints.auth.login.replace('/login', ''));
   }
 
-  async login(credentials: AuthCredentials): Promise<ApiResponse<AuthResponse>> {
+  async login(credentials: LoginRequestApi): Promise<ApiResponse<AuthResponse>> {
     try {
-      // Mock implementation for development
-      if (config.features.enableMockData) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockUser: User = {
-          id: 1,
-          name: credentials.email === 'admin@onpe.gob.pe' ? 'Administrador ONPE' : 'Usuario Demo',
-          email: credentials.email,
-          dni: '12345678',
-          hasVoted: false,
-          isAdmin: credentials.email === 'admin@onpe.gob.pe',
-          createdAt: new Date()
-        };
 
-        const token = 'mock-jwt-token-' + Date.now();
-        
-        // Store in localStorage for compatibility
-        localStorage.setItem(LOCAL_STORAGE_KEYS.TOKEN, token);
-        localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(mockUser));
-
-        return {
-          success: true,
-          data: { user: mockUser, token },
-          message: 'Inicio de sesión exitoso'
-        };
-      }
-
-      const response = await this.client.post<AuthResponse>(
+      // Llamada real a la API
+      const response = await this.client.post<{ token: string }>(
         this.buildUrl('/login'),
         credentials
       );
+
+      if (!response.token) {
+        return {
+          success: false,
+          message: 'Credenciales inválidas',
+        };
+      }
+
+      // Crear objeto usuario a partir de la respuesta
+      const user: User = {
+        id: Date.now(), // O extraer del token JWT
+        name: credentials.username.split('@')[0],
+        email: credentials.username,
+        dni: '', // Se puede obtener del perfil después
+        hasVoted: false,
+        isAdmin: credentials.username.includes('admin'),
+        createdAt: new Date()
+      };
+
+      // Store in localStorage
+      console.log('Login exitoso:', response);
+      console.log('Guardando token en localStorage:', response.token);
+
+      localStorage.setItem(LOCAL_STORAGE_KEYS.TOKEN, response.token);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(user));
+
+      console.log('Token guardado:', localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN));
+      console.log('User guardado:', localStorage.getItem(LOCAL_STORAGE_KEYS.USER));
       
       return {
         success: true,
-        data: response,
+        data: { user, token: response.token },
         message: 'Inicio de sesión exitoso'
       };
     } catch (error) {
@@ -57,46 +74,28 @@ export class AuthService extends BaseApiService {
     }
   }
 
-  async register(data: RegisterData): Promise<ApiResponse<AuthResponse>> {
+  async register(data: RegisterRequestApi): Promise<ApiResponse<{ message: string; email: string }>> {
     try {
-      // Mock implementation for development
-      if (config.features.enableMockData) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockUser: User = {
-          id: Date.now(),
-          name: data.name,
-          email: data.email,
-          dni: data.dni,
-          hasVoted: false,
-          isAdmin: false,
-          createdAt: new Date()
-        };
 
-        const token = 'mock-jwt-token-' + Date.now();
-        
-        // Store in localStorage for compatibility
-        localStorage.setItem(LOCAL_STORAGE_KEYS.TOKEN, token);
-        localStorage.setItem(LOCAL_STORAGE_KEYS.USER, JSON.stringify(mockUser));
-
-        return {
-          success: true,
-          data: { user: mockUser, token },
-          message: 'Registro exitoso'
-        };
-      }
-
-      const response = await this.client.post<AuthResponse>(
+      // Llamada real a la API
+      const response = await this.client.post<{ message: string; email: string }>(
         this.buildUrl('/register'),
         data
       );
-      
+
       return {
         success: true,
         data: response,
         message: 'Registro exitoso'
       };
     } catch (error) {
+      if (error.message.includes('409')) {
+        return {
+          success: false,
+          message: 'El correo electrónico ya está en uso',
+        };
+      }
+
       return this.handleError(error);
     }
   }
@@ -117,11 +116,18 @@ export class AuthService extends BaseApiService {
 
       await this.client.post(this.buildUrl('/logout'));
       
+      // Limpiar localStorage independientemente de la respuesta
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.USER);
+      
       return {
         success: true,
         message: 'Sesión cerrada exitosamente'
       };
     } catch (error) {
+      // Limpiar localStorage aún si hay error
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.USER);
       return this.handleError(error);
     }
   }
@@ -133,6 +139,10 @@ export class AuthService extends BaseApiService {
 
   isAuthenticated(): boolean {
     return !!localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN);
   }
 
   async refreshToken(): Promise<ApiResponse<AuthResponse>> {
